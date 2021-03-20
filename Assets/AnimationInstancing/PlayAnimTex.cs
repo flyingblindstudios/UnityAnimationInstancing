@@ -18,10 +18,9 @@ public class PlayAnimTex : MonoBehaviour
         { 
             return;
         }
-        var dirPath = Application.dataPath + "/Scenes/";
-        byte[] AnimData = File.ReadAllBytes(dirPath + "IdleAnimation" + ".bytes");
+
+        byte[] AnimData = AnimTexture.bytes;
         Debug.Log("Reading bytes: " + AnimData.Length);
-       // byte[] AnimData = AnimTexture.bytes;
 
 
         CurrentAnimation = new Texture2D(1376, 41,  TextureFormat.RGBAFloat, false,false);
@@ -30,20 +29,13 @@ public class PlayAnimTex : MonoBehaviour
         CurrentAnimation.LoadRawTextureData(AnimData);
         CurrentAnimation.Apply();
 
-        for (int x = 0; x < 4; x++)
-        {
-            Debug.Log("rx" + x + ": " + CurrentAnimation.GetPixel(x, 0));
-        }
-
         GetComponent<MeshRenderer>().material.SetTexture("_AnimTexture", CurrentAnimation);
-
     }
    
 
     private void Update()
     {
         GetComponent<MeshRenderer>().material.SetFloat("_AnimTime", CurrentAnimationTime/11.0f*300);
-
 
         CurrentAnimationTime += Time.deltaTime*AnimationSpeed;
 

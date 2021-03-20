@@ -39,9 +39,6 @@ public class AnimationToTexture : MonoBehaviour
 
         Transform rootBone = tmpObj.transform.Find(RootBoneName);
 
-        
-        //AddBoneChilds(rootBone, ref Bones);
-       
 
         SkinnedMeshRenderer skinned = tmpObj.GetComponentInChildren<SkinnedMeshRenderer>();
         Bones.AddRange(skinned.bones);
@@ -81,15 +78,9 @@ public class AnimationToTexture : MonoBehaviour
                 {
                     int yPos = b;
 
-                    //int xPos = Mathf.FloorToInt((totalD / totalAnimationTime) * (float)TextureSizeX);
-                    //. Note that since a bone’s world space transform \mathbf{W}_i maps data from joint local space to world space, the corresponding binding transform is actually the inverse of \mathbf{W}_i
-                    ///Matrix4x4 bindingMatrix = Bones[b].localToWorldMatrix.inverse;
+                    //rootbone worldtolocal to remove root movement
 
-                    //(bone's local2world matrix) (bindPoseMatrix) * object-space-pos
-                    //Matrix4x4 matrix = Bones[b].localToWorldMatrix * InverseBind[b];
-                    
-                    //this code should be correct/
-                    Matrix4x4 matrix =  Bones[b].localToWorldMatrix  *  InverseBind[b];
+                    Matrix4x4 matrix = Bones[b].localToWorldMatrix  *  InverseBind[b];
                     
 
                     Vector4 r0 = matrix.GetRow(0) * normalizationFactor;
@@ -102,26 +93,6 @@ public class AnimationToTexture : MonoBehaviour
                     r1 = (r1 + offset) * 0.5f;
                     r2 = (r2 + offset) * 0.5f;
                     r3 = (r3 + offset) * 0.5f;
-
-                    /*Debug.Log(r0);
-                    Debug.Log(r1);
-                    Debug.Log(r2);
-                    Debug.Log(r3);*/
-                    // Alpha is suppost to be just not included? because the matrix seems to be 3x4, no i think its the last row that needs to go? so i have only 3xrgba?
-                    //remoove row 4 we dont need it
-
-                    //if (r0.magnitude > 1 || r1.magnitude > 1 || r2.magnitude > 1 || r3.magnitude > 1)
-                    {
-                        //Debug.Log("Error found magnitude bigger 1" + r0);
-                        //Debug.Log("Error found magnitude bigger 1" + r1);
-                       // Debug.Log("Error found magnitude bigger 1" + r2);
-                       // Debug.Log("Error found magnitude bigger 1" + r3);
-                    }
-
-                  //  textureMap[GetIndex(xPos, yPos, TextureSizeX)] = r0;
-                  //  textureMap[GetIndex(xPos+1, yPos, TextureSizeX)] = r1;
-                  //  textureMap[GetIndex(xPos+2, yPos, TextureSizeX)] = r2;
-                 //   textureMap[GetIndex(xPos + 3, yPos, TextureSizeX)] = r3;
 
                     texture.SetPixel(xPos, yPos, r0);
                     texture.SetPixel(xPos+1, yPos, r1);
@@ -146,12 +117,6 @@ public class AnimationToTexture : MonoBehaviour
         }
 
 
-
-
-        //create texture
-       
-            
-        //texture.SetPixels(textureMap);
         texture.Apply();
 
         for (int x = 0; x < 4; x++)
@@ -171,8 +136,7 @@ public class AnimationToTexture : MonoBehaviour
 
 
          //save texture, the encode to png will destroy the precision!
-         //byte[] bytes = texture.EncodeToPNG();
-         var dirPath = Application.dataPath + "/Scenes/";
+         var dirPath = Application.dataPath + "/Animations/";
          if (!Directory.Exists(dirPath))
          {
              Directory.CreateDirectory(dirPath);
@@ -182,9 +146,6 @@ public class AnimationToTexture : MonoBehaviour
 
          byte[] read = File.ReadAllBytes(dirPath + "IdleAnimation" + ".bytes");
          Debug.Log("read RAWSIZE: " + read.Length);
-
-
-         //file needs to be clmap, point filter and no power of two and no mipmapping!
 
          Destroy(tmpObj);
 
@@ -200,29 +161,4 @@ public class AnimationToTexture : MonoBehaviour
             AddBoneChilds(Bone.GetChild(i), ref InBones);
         }
     }
-
-    /*
-    public static Matrix4x4[] CalculateSkinMatrix(Transform[] bonePose,
-            Matrix4x4[] bindPose,
-            Matrix4x4 rootMatrix1stFrame,
-            bool haveRootMotion)
-    {
-        if (bonePose.Length == 0)
-            return null;
-
-        Transform root = bonePose[0];
-        while (root.parent != null)
-        {
-            root = root.parent;
-        }
-        Matrix4x4 rootMat = root.worldToLocalMatrix;
-
-        Matrix4x4[] matrix = new Matrix4x4[bonePose.Length];
-        for (int i = 0; i != bonePose.Length; ++i)
-        {
-            matrix[i] = rootMat * bonePose[i].localToWorldMatrix * bindPose[i];
-        }
-        return matrix;
-    }*/
-
 }

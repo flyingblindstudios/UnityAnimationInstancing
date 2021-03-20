@@ -85,10 +85,6 @@
 
             for (int i = 0; i < 4; ++i)
             {
-                /*if (weights[i] < 0.1)
-                {
-                    continue;
-                }*/
                 //texture y is the bone
                 //texture x is the matrix
                 float frameIndex = (uint)_AnimTime;
@@ -129,7 +125,7 @@
                 skinMatrix[0] = matrixR0 * 360.0;
                 skinMatrix[1] = matrixR1 * 360.0;
                 skinMatrix[2] = matrixR2 * 360.0;
-                skinMatrix[3] = float4(0,0,0,1);// matrixR3 * 360.0;
+                skinMatrix[3] = float4(0,0,0,1);
 
 
                 float3 vtransformed = mul(skinMatrix, float4(positionIn, 1));
