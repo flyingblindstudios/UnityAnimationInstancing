@@ -7,7 +7,7 @@
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
         _AnimTexture("AnimTexture", 2D) = "white" {}
-        _AnimTime("AnimTime", Range(0,1000)) = 0.0
+        [PerRendererData] _AnimTime("AnimTime", Range(0,1000)) = 0.0
     }
     SubShader
     {
@@ -36,8 +36,8 @@
             float3 normal : NORMAL;
             float3 tangent : TANGENT;
             float4 texcoord : TEXCOORD0;
-            float4 lightcoord : TEXCOORD1;
-            float4 dynamicGIcoord : TEXCOORD2;
+            float4 texcoord1 : TEXCOORD1;
+            float4 texcoord2 : TEXCOORD2;
             float4 weights : BLENDWEIGHTS;
             int4 idx : BLENDINDICES;
             UNITY_VERTEX_INPUT_INSTANCE_ID

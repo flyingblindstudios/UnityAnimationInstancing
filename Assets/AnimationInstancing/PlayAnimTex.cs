@@ -7,9 +7,13 @@ public class PlayAnimTex : MonoBehaviour
 {
     [SerializeField] private TextAsset AnimTexture = null;
     static Texture2D CurrentAnimation;
-
+    static int AnimPropID;
     float CurrentAnimationTime = 0;
     float AnimationSpeed = 2.0f;
+    MaterialPropertyBlock props;
+    MeshRenderer mRender;
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -28,21 +32,23 @@ public class PlayAnimTex : MonoBehaviour
             CurrentAnimation.wrapMode = TextureWrapMode.Clamp;
             CurrentAnimation.LoadRawTextureData(AnimData);
             CurrentAnimation.Apply();
+            AnimPropID = Shader.PropertyToID("_AnimTime");
+
+
             GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_AnimTexture", CurrentAnimation);
         }
-        
-
+       
+        mRender = GetComponent<MeshRenderer>();
         CurrentAnimationTime = Random.Range(0f,10f);
+        props = new MaterialPropertyBlock();
     }
    
 
     private void Update()
     {
-        MaterialPropertyBlock props = new MaterialPropertyBlock();
+        props.SetFloat(AnimPropID, CurrentAnimationTime/11.0f*300);
 
-        props.SetFloat("_AnimTime", CurrentAnimationTime/11.0f*300);
-
-        GetComponent<MeshRenderer>().SetPropertyBlock(props);
+        mRender.SetPropertyBlock(props);
 
         CurrentAnimationTime += Time.deltaTime*AnimationSpeed;
 
