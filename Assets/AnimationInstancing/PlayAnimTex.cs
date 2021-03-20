@@ -6,8 +6,7 @@ using UnityEngine;
 public class PlayAnimTex : MonoBehaviour
 {
     [SerializeField] private TextAsset AnimTexture = null;
-
-    Texture2D CurrentAnimation;
+    static Texture2D CurrentAnimation;
 
     float CurrentAnimationTime = 0;
     float AnimationSpeed = 2.0f;
@@ -22,20 +21,28 @@ public class PlayAnimTex : MonoBehaviour
         byte[] AnimData = AnimTexture.bytes;
         Debug.Log("Reading bytes: " + AnimData.Length);
 
+        if(!CurrentAnimation)
+        { 
+            CurrentAnimation = new Texture2D(1376, 41,  TextureFormat.RGBAFloat, false,false);
+            CurrentAnimation.filterMode = FilterMode.Point;
+            CurrentAnimation.wrapMode = TextureWrapMode.Clamp;
+            CurrentAnimation.LoadRawTextureData(AnimData);
+            CurrentAnimation.Apply();
+            GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_AnimTexture", CurrentAnimation);
+        }
+        
 
-        CurrentAnimation = new Texture2D(1376, 41,  TextureFormat.RGBAFloat, false,false);
-        CurrentAnimation.filterMode = FilterMode.Point;
-        CurrentAnimation.wrapMode = TextureWrapMode.Clamp;
-        CurrentAnimation.LoadRawTextureData(AnimData);
-        CurrentAnimation.Apply();
-
-        GetComponent<MeshRenderer>().material.SetTexture("_AnimTexture", CurrentAnimation);
+        CurrentAnimationTime = Random.Range(0f,10f);
     }
    
 
     private void Update()
     {
-        GetComponent<MeshRenderer>().material.SetFloat("_AnimTime", CurrentAnimationTime/11.0f*300);
+        MaterialPropertyBlock props = new MaterialPropertyBlock();
+
+        props.SetFloat("_AnimTime", CurrentAnimationTime/11.0f*300);
+
+        GetComponent<MeshRenderer>().SetPropertyBlock(props);
 
         CurrentAnimationTime += Time.deltaTime*AnimationSpeed;
 
