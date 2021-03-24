@@ -5,54 +5,53 @@ using UnityEngine;
 
 public class PlayAnimTex : MonoBehaviour
 {
-    [SerializeField] private TextAsset AnimTexture = null;
-    static Texture2D CurrentAnimation;
+    [SerializeField] private TextureAnimationData AnimData = null;
+    [SerializeField] public float AnimationSpeed = 1.0f;
+
+
+    //static Texture2D CurrentAnimation;
     static int AnimPropID;
     float CurrentAnimationTime = 0;
-    float AnimationSpeed = 2.0f;
+    
     MaterialPropertyBlock props;
     MeshRenderer mRender;
 
+    TextureAnimationData.AnimationClip ClipToPlay = null;
 
     // Start is called before the first frame update
     void Start()
     {
-        if (!AnimTexture)
+        if (!AnimData)
         { 
             return;
         }
 
-        byte[] AnimData = AnimTexture.bytes;
-        Debug.Log("Reading bytes: " + AnimData.Length);
+        AnimPropID = Shader.PropertyToID("_AnimTime");
+        GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_AnimTexture", AnimData.GetTexture());
 
-        if(!CurrentAnimation)
-        { 
-            CurrentAnimation = new Texture2D(1376, 41,  TextureFormat.RGBAFloat, false,false);
-            CurrentAnimation.filterMode = FilterMode.Point;
-            CurrentAnimation.wrapMode = TextureWrapMode.Clamp;
-            CurrentAnimation.LoadRawTextureData(AnimData);
-            CurrentAnimation.Apply();
-            AnimPropID = Shader.PropertyToID("_AnimTime");
-
-
-            GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_AnimTexture", CurrentAnimation);
-        }
-       
         mRender = GetComponent<MeshRenderer>();
         CurrentAnimationTime = Random.Range(0f,10f);
         props = new MaterialPropertyBlock();
+
+        ClipToPlay = AnimData.AnimationClips[0];
+
+        if (ClipToPlay == null)
+        {
+            enabled = false;
+            Debug.Log("Animaiton clip empty!");
+        }
     }
    
 
     private void Update()
     {
-        props.SetFloat(AnimPropID, CurrentAnimationTime/11.0f*300);
+        props.SetFloat(AnimPropID, (CurrentAnimationTime/ ClipToPlay.Length *( ClipToPlay.EndFrame - ClipToPlay.StartFrame)) + ClipToPlay.StartFrame);
 
         mRender.SetPropertyBlock(props);
 
         CurrentAnimationTime += Time.deltaTime*AnimationSpeed;
 
-        if (CurrentAnimationTime > 11.0f)
+        if (CurrentAnimationTime > ClipToPlay.Length)
         {
             CurrentAnimationTime = 0;
         }
