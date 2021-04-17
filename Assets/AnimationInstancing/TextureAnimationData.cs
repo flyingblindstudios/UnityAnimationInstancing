@@ -8,20 +8,21 @@ public class TextureAnimationData : ScriptableObject
     [Serializable]
     public class AnimationClip
     {
-        public string Name;
-        public int StartFrame;
-        public int EndFrame;
-        public int AnimationIndex;
-        public float Length;
+        [SerializeField] public string Name;
+        [SerializeField] public int StartFrame;
+        [SerializeField] public int EndFrame;
+        [SerializeField] public int AnimationIndex;
+        [SerializeField] public float Length;
+        [SerializeField] public List<AnimationSlot> AnimationSlots = new List<AnimationSlot>();
     }
 
     [Serializable]
     public class AnimationSlot
     {
         public string Name;
-        //public int StartFrame;
-        //public int EndFrame;
-        //public int BlockIndex; //
+        public Matrix4x4[] Skinning;
+        public Vector3[] Pos;
+        public Quaternion[] Rot;
     }
 
 
@@ -33,7 +34,7 @@ public class TextureAnimationData : ScriptableObject
     [SerializeField] public float NormalisationFactor;
 
     [SerializeField] public List<AnimationClip> AnimationClips = new List<AnimationClip>();
-    [SerializeField] public List<AnimationSlot> AnimationSlots = new List<AnimationSlot>();
+   
 
     //Slots
 

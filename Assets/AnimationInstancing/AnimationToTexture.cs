@@ -10,8 +10,9 @@ using UnityEditor;
 
 public class AnimationToTexture : MonoBehaviour
 {
-    [SerializeField] GameObject Character;
-    [SerializeField] AnimationClip[] Clips;
+    [SerializeField] GameObject Character = null;
+    [SerializeField] AnimationClip[] Clips = null;
+    [SerializeField] string[] Slots = null;
     [SerializeField] string RootBoneName = "Hips";
 
     private List<Transform> Bones = new List<Transform>();
@@ -84,39 +85,87 @@ public class AnimationToTexture : MonoBehaviour
             clipData.Name = clip.name;
             TextureAnimationData.AnimationClips.Add(clipData);
 
+            //add slots
+            clipData.AnimationSlots.Clear();
+
+            //samples we take for this animationclip
+            int numAnimationSamples = Mathf.CeilToInt(clipData.Length / SampleRat);
+
+            for (int i = 0; i < Slots.Length; i++)
+            {
+                TextureAnimationData.AnimationSlot slot = new TextureAnimationData.AnimationSlot();
+                slot.Skinning = new Matrix4x4[numAnimationSamples];
+                slot.Pos = new Vector3[numAnimationSamples];
+                slot.Rot = new Quaternion[numAnimationSamples];
+                slot.Name = Slots[i];
+                clipData.AnimationSlots.Add(slot);
+            }
+           
+           
+
             int xPos = 0;
+            int animSamplePos = 0;
             for (float d = 0; d < clip.length; d += SampleRat)
             {
                 clip.SampleAnimation(tmpObj, d);
                 for (int b = 0; b < Bones.Count; b++)
                 {
-                    int yPos = b + AnimationCount* Bones.Count;
+                    int yPos = b + AnimationCount * Bones.Count;
 
                     //rootbone worldtolocal to remove root movement
+                    Matrix4x4 matrix = /*rootBone.worldToLocalMatrix **/ Bones[b].localToWorldMatrix * InverseBind[b];
 
-                    Matrix4x4 matrix = rootBone.worldToLocalMatrix* Bones[b].localToWorldMatrix  *  InverseBind[b];
-                    
 
                     //normalize
                     Vector4 r0 = matrix.GetRow(0) * normalizationFactor;
                     Vector4 r1 = matrix.GetRow(1) * normalizationFactor;
                     Vector4 r2 = matrix.GetRow(2) * normalizationFactor;
                     Vector4 r3 = matrix.GetRow(3) * normalizationFactor;
-                    Vector4 offset = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-
+                    Vector4 offset4 = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                    Vector3 offset3 = new Vector3(1.0f, 1.0f, 1.0f);
                     //offset because negative values
-                    r0 = (r0 + offset) * 0.5f;
-                    r1 = (r1 + offset) * 0.5f;
-                    r2 = (r2 + offset) * 0.5f;
-                    r3 = (r3 + offset) * 0.5f;
+                    r0 = (r0 + offset4) * 0.5f;
+                    r1 = (r1 + offset4) * 0.5f;
+                    r2 = (r2 + offset4) * 0.5f;
+                    r3 = (r3 + offset4) * 0.5f;
 
                     texture.SetPixel(xPos, yPos, r0);
-                    texture.SetPixel(xPos+1, yPos, r1);
-                    texture.SetPixel(xPos+2, yPos, r2);
-                    texture.SetPixel(xPos+3, yPos, r3);
+                    texture.SetPixel(xPos + 1, yPos, r1);
+                    texture.SetPixel(xPos + 2, yPos, r2);
+                    texture.SetPixel(xPos + 3, yPos, r3);
 
+                    //go through slots
+                    for (int i = 0; i < clipData.AnimationSlots.Count; i++)
+                    {
+                        //is it the bone we need for the slot??
+                        if (string.Compare(clipData.AnimationSlots[i].Name, Bones[b].gameObject.name) == 0)
+                        {
+                            //the normalization process for the gpu will "change" the values so we need to do the same here to get the same! 
+                            Vector3 correctPOs = Bones[b].position;
+                            correctPOs *= normalizationFactor;
+                            correctPOs += offset3;
+                            correctPOs *= 0.5f;
+                            correctPOs *= 2.0f;
+                            correctPOs -= offset3;
+                            correctPOs *= 360.0f;
+
+                            Vector3 correctedRotation = Bones[b].rotation.eulerAngles;
+                            correctedRotation *= normalizationFactor;
+                            correctedRotation += offset3;
+                            correctedRotation *= 0.5f;
+                            correctedRotation *= 2.0f;
+                            correctedRotation -= offset3;
+                            correctedRotation *= 360.0f;
+
+                            //add matrix
+                            clipData.AnimationSlots[i].Skinning[animSamplePos] = matrix;
+                            clipData.AnimationSlots[i].Pos[animSamplePos] = correctPOs;
+                            clipData.AnimationSlots[i].Rot[animSamplePos] = Quaternion.Euler(correctedRotation);
+                        }
+                    }
                 }
                 xPos += 4;
+                animSamplePos += 1;
                 yield return null;  
                 totalD += SampleRat;
             }

@@ -8,13 +8,14 @@ public class PlayAnimTex : MonoBehaviour
     [SerializeField] private TextureAnimationData AnimData = null;
     [SerializeField] public float AnimationSpeed = 1.0f;
 
+    [SerializeField] Transform[] Slots = null;
 
     //static Texture2D CurrentAnimation;
     static int AnimPropID;
     float CurrentAnimationTime = 0;
     
-    MaterialPropertyBlock props;
-    MeshRenderer mRender;
+    MaterialPropertyBlock props = null;
+    MeshRenderer mRender = null;
 
     TextureAnimationData.AnimationClip ClipToPlay = null;
 
@@ -45,7 +46,11 @@ public class PlayAnimTex : MonoBehaviour
 
     private void Update()
     {
-        props.SetFloat(AnimPropID, (CurrentAnimationTime/ ClipToPlay.Length *( ClipToPlay.EndFrame - ClipToPlay.StartFrame)) + ClipToPlay.StartFrame);
+
+        float time01 = CurrentAnimationTime / ClipToPlay.Length;
+
+
+        props.SetFloat(AnimPropID, (time01 * ( ClipToPlay.EndFrame - ClipToPlay.StartFrame)) + ClipToPlay.StartFrame);
 
         mRender.SetPropertyBlock(props);
 
@@ -55,6 +60,23 @@ public class PlayAnimTex : MonoBehaviour
         {
             CurrentAnimationTime = 0;
         }
+
+        for (int s = 0; s < Slots.Length; s++)
+        {
+            //animate slots
+            for (int i = 0; i < ClipToPlay.AnimationSlots.Count; i++)
+            {
+                if (ClipToPlay.AnimationSlots[i].Name == Slots[s].name)
+                {
+                    int size = ClipToPlay.AnimationSlots[i].Pos.Length;
+                    int index = Mathf.Clamp(Mathf.FloorToInt(size * time01),0,size);
+                    Slots[s].localPosition = ClipToPlay.AnimationSlots[i].Pos[index];
+                    Slots[s].localRotation = ClipToPlay.AnimationSlots[i].Rot[index];
+                    break;
+                }
+            }
+        }
+       
     }
 
 
